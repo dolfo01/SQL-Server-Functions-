@@ -1,0 +1,34 @@
+USE [master]
+GO
+
+-- 01 - Cria a função que retorna a base de dados
+ CREATE   FUNCTION [dbo].[GetDatabaseName] (@databaseInput VARCHAR(255))
+RETURNS VARCHAR(255)
+AS
+BEGIN
+    DECLARE @result VARCHAR(255)
+    
+    -- 02 Se o input for numérico, trata como database_id
+    IF ISNUMERIC(@databaseInput) = 1
+    BEGIN
+        SELECT @result = name 
+        FROM sys.databases 
+        WHERE database_id = CAST(@databaseInput AS INT)
+        
+        IF @result IS NULL
+            SET @result = 'Database with ID ' + @databaseInput + ' not found'
+    END
+    ELSE
+    BEGIN
+        -- 03 Verifica se a base com esse nome existe
+        IF EXISTS (SELECT 1 FROM sys.databases WHERE name = @databaseInput)
+            SET @result = @databaseInput
+        ELSE
+            SET @result = 'Database "' + @databaseInput + '" not found'
+    END
+    
+    RETURN @result
+END
+GO
+
+
